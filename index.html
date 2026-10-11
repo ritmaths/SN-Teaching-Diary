@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teaching Diary Management - 26MAM11</title>
+    <!-- SheetJS for Excel Export -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f9;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        h2, h3 {
+            color: #1a365d;
+            margin-top: 0;
+        }
+        .header-info {
+            background: #e2e8f0;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 10px;
+            font-size: 14px;
+        }
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .tab-btn {
+            padding: 10px 20px;
+            background: #cbd5e1;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 15px;
+        }
+        .tab-btn.active {
+            background: #2563eb;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .table-responsive {
+            overflow-x: auto;
+            max-height: 600px;
+            margin-bottom: 20px;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            text-align: left;
+            background: #fff;
+        }
+        th, td {
+            border: 1px solid #cbd5e1;
+            padding: 8px 10px;
+        }
+        th {
+            background-color: #1e293b;
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        tr:nth-child(even) {
+            background-color: #f8fafc;
+        }
+        select, input[type="date"], input[type="text"] {
+            width: 100%;
+            padding: 5px;
+            box-sizing: border-box;
+            border: 1px solid #94a3b8;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+        .actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .btn {
+            padding: 10px 20px;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .btn-excel { background-color: #16a34a; }
+        .btn-excel:hover { background-color: #15803d; }
+        .btn-word { background-color: #2563eb; }
+        .btn-word:hover { background-color: #1d4ed8; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Ramaiah Institute of Technology - Teaching Diary</h2>
+    <div class="header-info">
+        <div><strong>Department:</strong> Mathematics[cite: 1]</div>
+        <div><strong>Course:</strong> 26MAM11 - Differential Calculus & Linear Algebra[cite: 1]</div>
+        <div><strong>Semester:</strong> I | <strong>Section:</strong> O[cite: 1]</div>
+        <div><strong>Faculty:</strong> Dr. Srikantha N (SN)[cite: 1]</div>
+        <div><strong>Term:</strong> 16.09.2026 to 16.01.2027[cite: 1]</div>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('theory')">Theory (50 Lessons)</button>
+        <button class="tab-btn" onclick="switchTab('tutorial')">Tutorial (15 Lessons)</button>
+    </div>
+
+    <!-- THEORY TAB -->
+    <div id="theory-tab" class="tab-content active">
+        <h3>Theory Classes</h3>
+        <div class="table-responsive">
+            <table id="theory-table">
+                <thead>
+                    <tr>
+                        <th>Lesson No.</th>
+                        <th>Proposed Date</th>
+                        <th>Proposed Time</th>
+                        <th>Status</th>
+                        <th>Actual Date</th>
+                        <th>Actual Time</th>
+                        <th>Reasons (If Not Taken)</th>
+                        <th>Remarks / Initials</th>
+                    </tr>
+                </thead>
+                <tbody id="theory-tbody">
+                    <!-- Populated via JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- TUTORIAL TAB -->
+    <div id="tutorial-tab" class="tab-content">
+        <h3>Tutorial Classes</h3>
+        <div class="table-responsive">
+            <table id="tutorial-table">
+                <thead>
+                    <tr>
+                        <th>Tutorial No.</th>
+                        <th>Proposed Date</th>
+                        <th>Proposed Time</th>
+                        <th>Status</th>
+                        <th>Actual Date</th>
+                        <th>Actual Time</th>
+                        <th>Reasons (If Not Taken)</th>
+                        <th>Remarks / Initials</th>
+                    </tr>
+                </thead>
+                <tbody id="tutorial-tbody">
+                    <!-- Populated via JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="actions">
+        <button class="btn btn-excel" onclick="downloadExcel()">Download Excel (.xlsx)</button>
+        <button class="btn btn-word" onclick="downloadWord()">Download Table (.docx)</button>
+    </div>
+</div>
+
+<script>
+    const timeSlots = [
+        '9.00-9.55', '9.55-10.50', '11.05-12.00', 
+        '12.00-12.55', '12.50-1.45', '1.45-2.40', 
+        '2.40-3.35', '3.35-4.30'
+    ];
+
+    const theoryData = [
+        {no: 1, date: "16-09-2026", time: "11:05-12:50"}[cite: 1],
+        {no: 2, date: "17-09-2026", time: "11:05-12:50"}[cite: 1],
+        {no: 3, date: "18-09-2026", time: "09:55-10:50"}[cite: 1],
+        {no: 4, date: "21-09-2026", time: "12:50-13:45"}[cite: 1],
+        {no: 5, date: "22-09-2026", time: "09:55-10:50"}[cite: 1],
+        {no: 6, date: "24-09-2026", time: "11:05-12:50"}[cite: 1],
+        {no: 7, date: "25-09-2026", time: "09:55-10:50"}[cite: 1],
+        {no: 8, date: "28-09-2026", time: "12:50-13:45"}[cite: 1],
+        {no: 9, date: "29-09-2026", time: "09:55-10:50"}[cite: 1],
+        {no: 10, date: "01-10-2026", time: "11:05-12:50"}[cite: 1],
+        {no: 11, date: "05-10-2026", time: "12:50-13:45"}[cite: 1],
+        {no: 12, date: "06-10-2026", time: "09:55-10:50"}[cite: 1],
+        {no: 13, date: "08-10-2026", time: "11:05-12:50"}[cite: 1],
+        {no: 14, date: "09-10-2026", time: "09:55-10:50"}[cite: 1],
+        {no: 15, date: "12-10-2026", time: "12:50-13:45"}[cite: 1],
+        {no: 16, date: "13-10-2026", time: "09:55-10:50"}[cite: 1],
+        {no: 17, date: "15-10-2026", time: "11:05-12:50"}[cite: 1],
+        {no: 18, date: "16-10-2026", time: "09:55-10:50"}[cite: 1],
+        {no: 19, date: "19-10-2026", time: "12:50-13:45"}[cite: 1],
+        {no: 20, date: "22-10-2026", time: "11:05-12:50"}[cite: 1],
+        {no: 21, date: "23-10-2026", time: "09:55-10:50"}[cite: 1],
+        {no: 22, date: "26-10-2026", time: "12:50-13:45"}[cite: 1],
+        {no: 23, date: "30-10-2026", time: "09:55-10:50"}[cite: 1],
+        {no: 24, date: "02-11-2026", time: "12:50-13:45"}[cite: 1],
+        {no: 25, date: "03-11-2026", time: "09:55-10:50"}[cite: 1],
+        {no: 26, date: "05-11-2026", time: "11:05-12:50"}[cite: 2],
+        {no: 27, date: "06-11-2026", time: "09:55-10:50"}[cite: 2],
+        {no: 28, date: "12-11-2026", time: "11:05-12:50"}[cite: 2],
+        {no: 29, date: "13-11-2026", time: "09:55-10:50"}[cite: 2],
+        {no: 30, date: "16-11-2026", time: "12:50-13:45"}[cite: 2],
+        {no: 31, date: "17-11-2026", time: "09:55-10:50"}[cite: 2],
+        {no: 32, date: "19-11-2026", time: "11:05-12:50"}[cite: 2],
+        {no: 33, date: "20-11-2026", time: "09:55-10:50"}[cite: 2],
+        {no: 34, date: "23-11-2026", time: "12:50-13:45"}[cite: 2],
+        {no: 35, date: "24-11-2026", time: "09:55-10:50"}[cite: 2],
+        {no: 36, date: "26-11-2026", time: "11:05-12:50"}[cite: 2],
+        {no: 37, date: "30-11-2026", time: "12:50-13:45"}[cite: 2],
+        {no: 38, date: "01-12-2026", time: "09:55-10:50"}[cite: 2],
+        {no: 39, date: "03-12-2026", time: "11:05-12:50"}[cite: 2],
+        {no: 40, date: "04-12-2026", time: "09:55-10:50"}[cite: 2],
+        {no: 41, date: "10-12-2026", time: "11:05-12:50"}[cite: 2],
+        {no: 42, date: "11-12-2026", time: "09:55-10:50"}[cite: 2],
+        {no: 43, date: "14-12-2026", time: "12:50-13:45"}[cite: 2],
+        {no: 44, date: "15-12-2026", time: "09:55-10:50"}[cite: 2],
+        {no: 45, date: "17-12-2026", time: "11:05-12:50"}[cite: 2],
+        {no: 46, date: "18-12-2026", time: "09:55-10:50"}[cite: 2],
+        {no: 47, date: "21-12-2026", time: "12:50-13:45"}[cite: 2],
+        {no: 48, date: "22-12-2026", time: "09:55-10:50"}[cite: 2],
+        {no: 49, date: "24-12-2026", time: "11:05-12:50"}[cite: 2],
+        {no: 50, date: "25-12-2026", time: "09:55-10:50"}[cite: 2]
+    ];
+
+    const tutorialData = [
+        {no: 1, date: "23-09-2026", time: "11:05-12:50"}[cite: 2],
+        {no: 2, date: "30-09-2026", time: "11:05-12:50"}[cite: 2],
+        {no: 3, date: "07-10-2026", time: "11:05-12:50"}[cite: 2],
+        {no: 4, date: "14-10-2026", time: "11:05-12:50"}[cite: 2],
+        {no: 5, date: "04-11-2026", time: "11:05-12:50"}[cite: 2],
+        {no: 6, date: "11-11-2026", time: "11:05-12:50"}[cite: 2],
+        {no: 7, date: "18-11-2026", time: "11:05-12:50"}[cite: 2],
+        {no: 8, date: "25-11-2026", time: "11:05-12:50"}[cite: 3],
+        {no: 9, date: "02-12-2026", time: "11:05-12:50"}[cite: 3],
+        {no: 10, date: "16-12-2026", time: "11:05-12:50"}[cite: 3],
+        {no: 11, date: "23-12-2026", time: "11:05-12:50"}[cite: 3],
+        {no: 12, date: "30-12-2026", time: "11:05-12:50"}[cite: 3],
+        {no: 13, date: "06-01-2027", time: "11:05-12:50"}[cite: 3],
+        {no: 14, date: "28-12-2026", time: "12:50-13:45"}[cite: 3],
+        {no: 15, date: "29-12-2026", time: "09:55-10:50"}[cite: 3]
+    ];
+
+    function getTodayFormatted() {
+        const d = new Date();
+        let month = '' + (d.getMonth() + 1),
+            day = '' + d.getDate(),
+            year = d.getFullYear();
+        if (month.length < 2) month = '0' + month;
+        if (day.length < 2) day = '0' + day;
+        return [year, month, day].join('-');
+    }
+
+    function renderTable(data, tbodyId) {
+        const tbody = document.getElementById(tbodyId);
+        tbody.innerHTML = '';
+        data.forEach((item, index) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${item.no}</td>
+                <td class="p-date">${item.date}</td>
+                <td class="p-time">${item.time}</td>
+                <td>
+                    <select class="status-select" onchange="handleStatusChange(this)">
+                        <option value="taken" selected>Taken</option>
+                        <option value="not-taken">Not Taken</option>
+                    </select>
+                </td>
+                <td><input type="date" class="act-date" value="${convertDateFormat(item.date)}"></td>
+                <td>
+                    <select class="act-time">
+                        ${timeSlots.map(t => `<option value="${t}" ${t === item.time ? 'selected' : ''}>${t}</option>`).join('')}
+                    </select>
+                </td>
+                <td><input type="text" class="reason" placeholder="Reason if not taken" disabled></td>
+                <td><input type="text" class="remarks" placeholder="Remarks/Initials"></td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function convertDateFormat(dStr) {
+        // Converts DD-MM-YYYY to YYYY-MM-DD for input type="date"
+        const parts = dStr.split('-');
+        if (parts.length === 3) {
+            return `${parts[2]}-${parts[1]}-${parts[0]}`;
+        }
+        return getTodayFormatted();
+    }
+
+    function handleStatusChange(selectElem) {
+        const row = selectElem.closest('tr');
+        const pDate = row.querySelector('.p-date').innerText;
+        const pTime = row.querySelector('.p-time').innerText;
+        const actDateInput = row.querySelector('.act-date');
+        const actTimeSelect = row.querySelector('.act-time');
+        const reasonInput = row.querySelector('.reason');
+
+        if (selectElem.value === 'taken') {
+            actDateInput.value = convertDateFormat(pDate);
+            actDateInput.disabled = false;
+            actTimeSelect.value = pTime;
+            actTimeSelect.disabled = false;
+            reasonInput.value = '';
+            reasonInput.disabled = true;
+        } else {
+            actDateInput.value = getTodayFormatted();
+            actDateInput.disabled = false;
+            actTimeSelect.disabled = false;
+            reasonInput.disabled = false;
+        }
+    }
+
+    function switchTab(tabName) {
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+        if (tabName === 'theory') {
+            document.querySelectorAll('.tab-btn')[0].classList.add('active');
+            document.getElementById('theory-tab').classList.add('active');
+        } else {
+            document.querySelectorAll('.tab-btn')[1].classList.add('active');
+            document.getElementById('tutorial-tab').classList.add('active');
+        }
+    }
+
+    function collectData(tbodyId) {
+        const rows = document.querySelectorAll(`#${tbodyId} tr`);
+        let data = [];
+        rows.forEach(row => {
+            data.push({
+                no: row.cells[0].innerText,
+                proposedDate: row.cells[1].innerText,
+                proposedTime: row.cells[2].innerText,
+                status: row.querySelector('.status-select').value,
+                actualDate: row.querySelector('.act-date').value,
+                actualTime: row.querySelector('.act-time').value,
+                reason: row.querySelector('.reason').value,
+                remarks: row.querySelector('.remarks').value
+            });
+        });
+        return data;
+    }
+
+    function downloadExcel() {
+        const theoryArr = collectData('theory-tbody');
+        const tutorialArr = collectData('tutorial-tbody');
+
+        let wb = XLSX.utils.book_new();
+
+        let theorySheetData = [["Lesson No", "Proposed Date", "Proposed Time", "Status", "Actual Date", "Actual Time", "Reasons", "Remarks"]];
+        theoryArr.forEach(r => theorySheetData.push([r.no, r.proposedDate, r.proposedTime, r.status, r.actualDate, r.actualTime, r.reason, r.remarks]));
+        
+        let wsTheory = XLSX.utils.aoa_to_sheet(theorySheetData);
+        XLSX.utils.book_append_sheet(wb, wsTheory, "Theory Diary");
+
+        let tutorialSheetData = [["Tutorial No", "Proposed Date", "Proposed Time", "Status", "Actual Date", "Actual Time", "Reasons", "Remarks"]];
+        tutorialArr.forEach(r => tutorialSheetData.push([r.no, r.proposedDate, r.proposedTime, r.status, r.actualDate, r.actualTime, r.reason, r.remarks]));
+
+        let wsTutorial = XLSX.utils.aoa_to_sheet(tutorialSheetData);
+        XLSX.utils.book_append_sheet(wb, wsTutorial, "Tutorial Diary");
+
+        XLSX.writeFile(wb, "26MAM11_Teaching_Diary.xlsx");
+    }
+
+    function downloadWord() {
+        const theoryArr = collectData('theory-tbody');
+        const tutorialArr = collectData('tutorial-tbody');
+
+        let htmlContent = `
+            <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/1999/xhtml'>
+            <head><meta charset='utf-8'><title>Teaching Diary</title></head>
+            <body>
+            <h2>Ramaiah Institute of Technology - Teaching Diary</h2>
+            <p><b>Course:</b> 26MAM11 - Differential Calculus & Linear Algebra | <b>Section:</b> O | <b>Faculty:</b> Dr. Srikantha N[cite: 1]</p>
+            
+            <h3>Theory Classes</h3>
+            <table border="1" cellspacing="0" cellpadding="5" style="border-collapse:collapse;width:100%;">
+                <tr style="background-color:#1e293b;color:#ffffff;">
+                    <th>Lesson No.</th><th>Proposed Date & Time</th><th>Status</th><th>Actual Date</th><th>Actual Time</th><th>Reasons</th><th>Remarks</th>
+                </tr>`;
+        
+        theoryArr.forEach(r => {
+            htmlContent += `<tr>
+                <td>${r.no}</td><td>${r.proposedDate} (${r.proposedTime})</td><td>${r.status}</td><td>${r.actualDate}</td><td>${r.actualTime}</td><td>${r.reason}</td><td>${r.remarks}</td>
+            </tr>`;
+        });
+
+        htmlContent += `</table><h3>Tutorial Classes</h3>
+            <table border="1" cellspacing="0" cellpadding="5" style="border-collapse:collapse;width:100%;">
+                <tr style="background-color:#1e293b;color:#ffffff;">
+                    <th>Tutorial No.</th><th>Proposed Date & Time</th><th>Status</th><th>Actual Date</th><th>Actual Time</th><th>Reasons</th><th>Remarks</th>
+                </tr>`;
+
+        tutorialArr.forEach(r => {
+            htmlContent += `<tr>
+                <td>${r.no}</td><td>${r.proposedDate} (${r.proposedTime})</td><td>${r.status}</td><td>${r.actualDate}</td><td>${r.actualTime}</td><td>${r.reason}</td><td>${r.remarks}</td>
+            </tr>`;
+        });
+
+        htmlContent += `</table></body></html>`;
+
+        const blob = new Blob(['\ufeff' + htmlContent], { type: 'application/msword' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = '26MAM11_Teaching_Diary.docx';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+
+    // Initialize tables on load
+    window.onload = function() {
+        renderTable(theoryData, 'theory-tbody');
+        renderTable(tutorialData, 'tutorial-tbody');
+    };
+</script>
+
+</body>
+</html>
